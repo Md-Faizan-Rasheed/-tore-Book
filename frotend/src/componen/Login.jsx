@@ -1,6 +1,8 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const Login = () => {
     const {
@@ -9,10 +11,35 @@ const Login = () => {
         formState: { errors },
     } = useForm();
 
-    const onSubmit = (data) => console.log(data);
+    const onSubmit = async (data) => {
+        const userInfo = {
+            email: data.email,
+            password: data.password,
+        };
+        await axios
+            .post("http://localhost:4000/user/login", userInfo)
+            .then((res) => {
+                console.log(res.data);
+                if (res.data) {
+                    toast.success("Logged in Successfully");
+
+                    setTimeout(() => {
+                        document.getElementById("my_modal_3").close();
+                        window.location.reload();
+                        localStorage.setItem("Users", JSON.stringify(res.data.user));
+                    }, 300);
+                }
+            })
+            .catch((error) => {
+                if (error.response) {
+                    console.log(error);
+                    toast.error("Error: " + error.response.data.message);
+                }
+            });
+    };
 
     return (
-        <div className=''>
+        <div>
             <dialog id="my_modal_3" className="modal">
                 <div className="modal-box flex flex-col gap-4 bg-white text-black">
                     <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={() => document.getElementById('my_modal_3').close()}>✕</button>
@@ -43,13 +70,12 @@ const Login = () => {
                         <div className='mt-4 ml-4 flex flex-row justify-between'>
                             <button type='submit' className='bg-pink-600 px-3 py-2 font-semibold rounded-md text-xl'>Login</button>
                             <div className='mt-4 text-lg'>Not registered? <Link className='text-blue-500 underline' to="/signup">Signup</Link></div>
-
                         </div>
                     </form>
                 </div>
             </dialog>
         </div>
-    )
-}
+    );
+};
 
-export default Login
+export default Login;
